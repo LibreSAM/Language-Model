@@ -94,28 +94,3 @@ foreach (string line in inputLines)
     }
     sentenceEndThreeTwo.IncrementOccurenceCountByOne();
 }
-
-Console.WriteLine("\\data\\");
-Console.WriteLine($"ngram 1 = {onegrams.Count}");
-Console.WriteLine($"ngram 2 = {twograms.Count}");
-Console.WriteLine($"ngram 3 = {threegrams.Count}");
-Console.WriteLine();
-Console.WriteLine("\\1-grams:");
-foreach (Onegram item in onegrams)
-{
-    Console.WriteLine($"{item.OccuranceCount} {item.Word}");
-}
-Console.WriteLine();
-Console.WriteLine("\\2-grams:");
-foreach (Twogram item in twograms)
-{
-    Console.WriteLine($"{item.OccuranceCount} {item.Before} {item.Word}");
-}
-Console.WriteLine();
-Console.WriteLine("\\3-grams:");
-foreach (Threegram item in threegrams)
-{
-    Console.WriteLine($"{item.OccuranceCount} {item.BeforeBefore} {item.Before} {item.Word}");
-}
-Console.WriteLine();
-Console.WriteLine("\\end\\");
