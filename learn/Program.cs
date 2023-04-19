@@ -20,31 +20,63 @@ catch (Exception ex)
 }
 
 var onegrams = new List<Onegram>();
+var twograms = new List<Twogram>();
 uint wordCount = 0;
 
 foreach (string line in inputLines)
 {
     string[] words = line.Split(' ');
+    string previous = "<s>";
 
     foreach (string word in words)
     {
         wordCount++;
-        var onegram = new Onegram(word);
-        Onegram? existing = onegrams.Find(o => o.Word == onegram.Word);
-        if (existing is not null)
+
+        // 1-grams
+        Onegram? onegram = onegrams.Find(o => o.Word == word);
+        if (onegram is null)
         {
-            existing.IncrementOccurenceCountByOne();
-        }
-        else
-        {
-            onegram.IncrementOccurenceCountByOne();
+            onegram = new Onegram(word);
             onegrams.Add(onegram);
         }
+        onegram.IncrementOccurenceCountByOne();
+
+        // 2-grams
+        Twogram? twogram = twograms.Find(o => o.Before == previous && o.Word == word);
+        if (twogram is null)
+        {
+            twogram = new Twogram(previous, word);
+            twograms.Add(twogram);
+        }
+        twogram.IncrementOccurenceCountByOne();
+
+        // update for next cycle
+        previous = word;
     }
+
+    string current = "</s>";
+    Twogram? sentenceEnd = twograms.Find(o => o.Before == previous && o.Word == current);
+    if (sentenceEnd is null)
+    {
+        sentenceEnd = new Twogram(previous, current);
+        twograms.Add(sentenceEnd);
+    }
+    sentenceEnd.IncrementOccurenceCountByOne();
 }
 
-Console.WriteLine("\\1-grams");
+Console.WriteLine("\\data\\");
+Console.WriteLine($"ngram 1 = {onegrams.Count}");
+Console.WriteLine($"ngram 2 = {twograms.Count}");
+Console.WriteLine($"ngram 3 = {onegrams.Count}");
+Console.WriteLine();
+Console.WriteLine("\\1-grams:");
 foreach (Onegram item in onegrams)
 {
-    Console.WriteLine($"\"{item.Word}\" {item.OccuranceCount}");
+    Console.WriteLine($"{item.OccuranceCount} {item.Word}");
+}
+Console.WriteLine();
+Console.WriteLine("\\2-grams:");
+foreach (Twogram item in twograms)
+{
+    Console.WriteLine($"{item.OccuranceCount} {item.Before} {item.Word}");
 }
