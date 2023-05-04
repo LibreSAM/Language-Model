@@ -3,44 +3,57 @@
 namespace learn;
 public class NGram
 {
-    public IEnumerable<Onegram> Onegrams;
-    public IEnumerable<Twogram> Twograms;
-    public IEnumerable<Threegram> Threegrams;
+    public readonly uint Size;
+    public IDictionary<string, uint> NGrams;
 
-    public NGram()
+    public NGram(uint size)
     {
-        Onegrams = new List<Onegram>();
-        Twograms = new List<Twogram>();
-        Threegrams = new List<Threegram>();
+        Size = size;
+        NGrams = new Dictionary<string, uint>();
     }
 
     public string GetArpaRepresentation()
     {
         StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("\\data\\");
-        stringBuilder.AppendLine($"ngram 1 = {Onegrams.Count()}");
-        stringBuilder.AppendLine($"ngram 2 = {Twograms.Count()}");
-        stringBuilder.AppendLine($"ngram 3 = {Threegrams.Count()}");
-        stringBuilder.AppendLine();
-        stringBuilder.AppendLine("\\1-grams:");
-        foreach (Onegram item in Onegrams)
+        stringBuilder.AppendLine($"\\{Size}-grams:");
+        foreach (var item in NGrams)
         {
-            stringBuilder.AppendLine($"{item.OccuranceCount} {item.Word}");
+            stringBuilder.AppendLine($"{item.Value} {item.Key}");
         }
-        stringBuilder.AppendLine();
-        stringBuilder.AppendLine("\\2-grams:");
-        foreach (Twogram item in Twograms)
-        {
-            stringBuilder.AppendLine($"{item.OccuranceCount} {item.Before} {item.Word}");
-        }
-        stringBuilder.AppendLine();
-        stringBuilder.AppendLine("\\3-grams:");
-        foreach (Threegram item in Threegrams)
-        {
-            stringBuilder.AppendLine($"{item.OccuranceCount} {item.BeforeBefore} {item.Before} {item.Word}");
-        }
-        stringBuilder.AppendLine();
-        stringBuilder.AppendLine("\\end\\");
         return stringBuilder.ToString();
+    }
+
+    public void Learn(string[] line)
+    {
+        Queue<string> temp = new Queue<string>();
+        for (int i = 0; i < Size; i++)
+        {
+            temp.Enqueue("<s>");
+        }
+        foreach (var item in line)
+        {
+            temp.Enqueue(item);
+        }
+        for (int i = 0; i < Size; i++)
+        {
+            temp.Enqueue("</s>");
+        }
+
+        while (temp.Count() >= Size)
+        {
+            string ngram = temp.Dequeue();
+            for (int i = 0; i < Size - 1; i++)
+            {
+                ngram += $" {temp.ElementAt(i)}";
+            }
+            if (NGrams.ContainsKey(ngram))
+            {
+                NGrams[ngram]++;
+            }
+            else
+            {
+                NGrams.Add(ngram, 1);
+            }
+        }
     }
 }
