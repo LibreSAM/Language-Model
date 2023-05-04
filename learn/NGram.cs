@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 
 namespace learn;
 public class NGram
@@ -16,9 +17,10 @@ public class NGram
     {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.AppendLine($"\\{Size}-grams:");
+        int ngramCount = (int)NGrams.Sum(i => i.Value); // Not working yet
         foreach (var item in NGrams)
         {
-            stringBuilder.AppendLine($"{item.Value} {item.Key}");
+            stringBuilder.AppendLine($"{Math.Log10((double)item.Value / ngramCount)} {item.Key}");
         }
         return stringBuilder.ToString();
     }
