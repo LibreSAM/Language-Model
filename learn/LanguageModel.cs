@@ -52,11 +52,18 @@ public class LanguageModel
 
     public string GetArpaRepresentation()
     {
+        _logger.LogInformation("Computing ARPA-Representation of language model...");
+
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.AppendLine("\\data\\");
         foreach (var item in NGrams)
         {
-            stringBuilder.AppendLine($"ngram {item.Size} = {item.NGrams.Count}");
+            int count = 0;
+            foreach (var ngram in item.NGrams.Values)
+            {
+                count += ngram.Count();
+            }
+            stringBuilder.AppendLine($"ngram {item.Size} = {count}");
         }
         stringBuilder.AppendLine();
         foreach (var item in NGrams)
@@ -64,6 +71,8 @@ public class LanguageModel
             stringBuilder.AppendLine(item.GetArpaRepresentation());
         }
         stringBuilder.AppendLine("\\end\\");
+
+        _logger.LogInformation("Finished computing ARPA-Representation of language model");
         return stringBuilder.ToString();
     }
 }
