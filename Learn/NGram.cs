@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace learn;
+namespace Learn;
 public class NGram
 {
     public readonly uint Size;

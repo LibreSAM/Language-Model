@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace learn;
+namespace Learn;
 public class LanguageModel
 {
     public IEnumerable<NGram> NGrams;

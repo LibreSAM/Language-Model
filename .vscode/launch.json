@@ -10,9 +10,9 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/learn/bin/Debug/net7.0/learn.dll",
+            "program": "${workspaceFolder}/Learn/bin/Debug/net7.0/Learn.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/learn",
+            "cwd": "${workspaceFolder}/Learn",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console":"integratedTerminal",
             "stopAtEntry": false
