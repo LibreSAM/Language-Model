@@ -1,14 +1,16 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace learn;
 public class NGram
 {
     public readonly uint Size;
     public IDictionary<string, uint> NGrams;
+    private readonly ILogger _logger;
 
-    public NGram(uint size)
+    public NGram(uint size, ILogger logger)
     {
+        _logger = logger;
         Size = size;
         NGrams = new Dictionary<string, uint>();
     }
@@ -27,6 +29,9 @@ public class NGram
 
     public void Learn(string[] line)
     {
+        _logger.LogDebug($"Started learning {Size}-Gram");
+        _logger.LogTrace($"Learning text: \"{String.Join(' ', line)}\"");
+
         Queue<string> temp = new Queue<string>();
         for (int i = 0; i < Size; i++)
         {
@@ -50,12 +55,15 @@ public class NGram
             }
             if (NGrams.ContainsKey(ngram))
             {
+                _logger.LogTrace($"Found occurance of existing ngram: \"{ngram}\"");
                 NGrams[ngram]++;
             }
             else
             {
+                _logger.LogTrace($"Found new ngram: \"{ngram}\"");
                 NGrams.Add(ngram, 1);
             }
         }
+        _logger.LogDebug($"Finished learning {Size}-Gram");
     }
 }
