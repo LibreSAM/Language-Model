@@ -1,9 +1,9 @@
-﻿namespace Learn;
-public class LanguageModel
+﻿namespace LanguageModel;
+public class NGramLanguageModel
 {
     public readonly IDictionary<uint,NGram> NGrams;
 
-    public LanguageModel()
+    public NGramLanguageModel()
     {
         NGrams = new Dictionary<uint,NGram>();
     }

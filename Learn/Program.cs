@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using LanguageModel;
 using Microsoft.Extensions.Logging;
 
 namespace Learn;
@@ -6,7 +7,7 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        if (!ParseArguments(args, out LM_LearnOptions options))
+        if (!ParseArguments(args, out LearnOptions options))
         {
             return;
         }
@@ -20,17 +21,19 @@ public class Program
         var lmLearner = new LanguageModelLearner(loggerFactory);
         lmLearner.Learn(options.InputFilePath);
 
-        LanguageModel languageModel = lmLearner.BuildLanguageModel();
+        NGramLanguageModel languageModel = lmLearner.BuildLanguageModel();
+
         var outputBuffer = new MemoryStream();
         languageModel.GetArpaRepresentation(outputBuffer);
+        
         Thread.Sleep(100);
 
         Console.WriteLine(Encoding.UTF8.GetString(outputBuffer.ToArray()));
     }
 
-    private static bool ParseArguments(string[] args, out LM_LearnOptions arguments)
+    private static bool ParseArguments(string[] args, out LearnOptions arguments)
     {
-        arguments = new LM_LearnOptions();
+        arguments = new LearnOptions();
 
         string? inputFilePath;
         if (TryGetIndexOfElement(args, "--inputfilepath", out int index))

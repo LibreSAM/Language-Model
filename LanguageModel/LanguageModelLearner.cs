@@ -1,7 +1,6 @@
-﻿using System.Text;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace Learn;
+namespace LanguageModel;
 public class LanguageModelLearner
 {
     public IEnumerable<NGramCounter> NGramCounts;
@@ -50,10 +49,10 @@ public class LanguageModelLearner
         _logger.LogInformation("Finished learning language model");
     }
 
-    public LanguageModel BuildLanguageModel()
+    public NGramLanguageModel BuildLanguageModel()
     {
         _logger.LogInformation("Computing ARPA-Representation of language model...");
-        var languageModel = new LanguageModel();
+        var languageModel = new NGramLanguageModel();
 
         foreach (var item in NGramCounts)
         {

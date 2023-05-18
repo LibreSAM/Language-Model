@@ -1,7 +1,6 @@
-﻿using System.Text;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace Learn;
+namespace LanguageModel;
 public class NGramCounter
 {
     public readonly uint Size;
@@ -14,33 +13,7 @@ public class NGramCounter
         Size = size;
         NGrams = new Dictionary<string, IDictionary<string, uint>>();
     }
-
-    public string GetArpaRepresentation()
-    {
-        _logger.LogDebug($"Computing ARPA-Representation of {Size}-Grams...");
-
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine($"\\{Size}-grams:");
-        foreach (var context in NGrams)
-        {
-            _logger.LogTrace("Counting occurances of context...");
-            int ngramCount = (int)context.Value.Sum(next => next.Value);
-            _logger.LogTrace($"Occurances of context {context.Key}: {ngramCount}");
-
-            foreach (var next in context.Value)
-            {
-                string ngram = $"{context.Key} {next.Key}";
-                double p = (double)next.Value / ngramCount;
-                double p_log10 = Math.Log10(p);
-                _logger.LogTrace($"NGram \"{ngram}\": Occurances = {next.Value}; P = {p}; P_Log10 = {p_log10}");
-                stringBuilder.AppendLine($"{p_log10} {ngram}");
-            }
-        }
-
-        _logger.LogDebug($"Finished computing ARPA-Representation of {Size}-Grams");
-        return stringBuilder.ToString();
-    }
-
+    
     public void Learn(string[] line)
     {
         _logger.LogDebug($"Started learning {Size}-Gram");

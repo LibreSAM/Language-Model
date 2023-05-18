@@ -1,5 +1,5 @@
 ﻿namespace Learn;
-public struct LM_LearnOptions
+public struct LearnOptions
 {
     public string InputFilePath;
 }

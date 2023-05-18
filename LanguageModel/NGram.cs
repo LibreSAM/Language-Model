@@ -1,6 +1,4 @@
-﻿using System.Text;
-
-namespace Learn;
+﻿namespace LanguageModel;
 public class NGram
 {
     public readonly uint Size;
