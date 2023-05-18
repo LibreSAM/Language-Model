@@ -1,11 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text;
+using LanguageModel;
+using LanguageModel.Smoothing;
+using Microsoft.Extensions.Logging;
 
 namespace Learn;
 public class Program
 {
     public static void Main(string[] args)
     {
-        if (!ParseArguments(args, out LM_LearnOptions options))
+        if (!ParseArguments(args, out LearnOptions options))
         {
             return;
         }
@@ -16,15 +19,22 @@ public class Program
             builder.AddSimpleConsole();
         });
 
-        var lm = new LanguageModel(loggerFactory);
-        lm.Learn(options.InputFilePath);
+        var lmLearner = new LanguageModelLearner(loggerFactory);
+        lmLearner.Learn(options.InputFilePath);
 
-        Console.WriteLine(lm.GetArpaRepresentation());
+        NGramLanguageModel languageModel = lmLearner.BuildLanguageModel(new Regular());
+
+        var outputBuffer = new MemoryStream();
+        languageModel.GetArpaRepresentation(outputBuffer);
+        
+        Thread.Sleep(100);
+
+        Console.WriteLine(Encoding.UTF8.GetString(outputBuffer.ToArray()));
     }
 
-    private static bool ParseArguments(string[] args, out LM_LearnOptions arguments)
+    private static bool ParseArguments(string[] args, out LearnOptions arguments)
     {
-        arguments = new LM_LearnOptions();
+        arguments = new LearnOptions();
 
         string? inputFilePath;
         if (TryGetIndexOfElement(args, "--inputfilepath", out int index))

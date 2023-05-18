@@ -1,21 +1,21 @@
-﻿using System.Text;
+﻿using LanguageModel.Smoothing;
 using Microsoft.Extensions.Logging;
 
-namespace Learn;
-public class LanguageModel
+namespace LanguageModel;
+public class LanguageModelLearner
 {
-    public IEnumerable<NGram> NGrams;
+    public IList<NGramCounter> NGramCounts;
     private readonly ILogger _logger;
 
-    public LanguageModel(ILoggerFactory loggerFactory)
+    public LanguageModelLearner(ILoggerFactory loggerFactory)
     {
         uint size = 3;
 
-        _logger = loggerFactory.CreateLogger<LanguageModel>();
-        NGrams = new List<NGram>();
+        _logger = loggerFactory.CreateLogger<LanguageModelLearner>();
+        NGramCounts = new List<NGramCounter>();
         for (uint i = 1; i <= size; i++)
         {
-            NGrams = NGrams.Append(new NGram(i, loggerFactory.CreateLogger<NGram>()));
+            NGramCounts.Add(new NGramCounter(i, loggerFactory.CreateLogger<NGramCounter>()));
         }
     }
 
@@ -40,7 +40,7 @@ public class LanguageModel
         {
             _logger.LogTrace($"Using input text \"{line}\"");
             string[] words = line.Split(' ');
-            foreach (var item in NGrams)
+            foreach (var item in NGramCounts)
             {
                 _logger.LogDebug($"Learning {item.Size}-Grams");
                 item.Learn(words);
@@ -50,29 +50,26 @@ public class LanguageModel
         _logger.LogInformation("Finished learning language model");
     }
 
-    public string GetArpaRepresentation()
+    public NGramLanguageModel BuildLanguageModel(ISmoothing smoother)
     {
         _logger.LogInformation("Computing ARPA-Representation of language model...");
+        var languageModel = new NGramLanguageModel();
 
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("\\data\\");
-        foreach (var item in NGrams)
+        foreach (var item in NGramCounts)
         {
-            int count = 0;
-            foreach (var ngram in item.NGrams.Values)
+            foreach (var context in item.NGrams)
             {
-                count += ngram.Count();
+                foreach (var next in context.Value)
+                {
+                    string ngram = $"{context.Key} {next.Key}";
+                    double p = smoother.Smooth(next.Key, context.Key, NGramCounts);
+                    _logger.LogTrace($"NGram \"{ngram}\": Occurances = {next.Value}; smoothed P = {p}");
+                    languageModel.AddNGram(item.Size, context.Key, next.Key, p);
+                }
             }
-            stringBuilder.AppendLine($"ngram {item.Size} = {count}");
         }
-        stringBuilder.AppendLine();
-        foreach (var item in NGrams)
-        {
-            stringBuilder.AppendLine(item.GetArpaRepresentation());
-        }
-        stringBuilder.AppendLine("\\end\\");
 
         _logger.LogInformation("Finished computing ARPA-Representation of language model");
-        return stringBuilder.ToString();
+        return languageModel;
     }
 }
