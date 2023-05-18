@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace Learn;
 public class Program
@@ -16,10 +17,15 @@ public class Program
             builder.AddSimpleConsole();
         });
 
-        var lm = new LanguageModel(loggerFactory);
-        lm.Learn(options.InputFilePath);
+        var lmLearner = new LanguageModelLearner(loggerFactory);
+        lmLearner.Learn(options.InputFilePath);
 
-        Console.WriteLine(lm.GetArpaRepresentation());
+        LanguageModel languageModel = lmLearner.BuildLanguageModel();
+        var outputBuffer = new MemoryStream();
+        languageModel.GetArpaRepresentation(outputBuffer);
+        Thread.Sleep(100);
+
+        Console.WriteLine(Encoding.UTF8.GetString(outputBuffer.ToArray()));
     }
 
     private static bool ParseArguments(string[] args, out LM_LearnOptions arguments)

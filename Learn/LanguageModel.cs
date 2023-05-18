@@ -1,78 +1,44 @@
-﻿using System.Text;
-using Microsoft.Extensions.Logging;
-
-namespace Learn;
+﻿namespace Learn;
 public class LanguageModel
 {
-    public IEnumerable<NGram> NGrams;
-    private readonly ILogger _logger;
+    public readonly IDictionary<uint,NGram> NGrams;
 
-    public LanguageModel(ILoggerFactory loggerFactory)
+    public LanguageModel()
     {
-        uint size = 3;
-
-        _logger = loggerFactory.CreateLogger<LanguageModel>();
-        NGrams = new List<NGram>();
-        for (uint i = 1; i <= size; i++)
-        {
-            NGrams = NGrams.Append(new NGram(i, loggerFactory.CreateLogger<NGram>()));
-        }
+        NGrams = new Dictionary<uint,NGram>();
     }
 
-    public void Learn(string inputFilePath)
+    public void AddNGram(uint size, string context, string next, double possibility)
     {
-        _logger.LogInformation("Starting to learn the language model");
-        _logger.LogDebug($"Input file for learning: \"{inputFilePath}\"");
-
-        IEnumerable<string> inputLines;
-        try
+        if (!NGrams.TryGetValue(size, out NGram? ngram))
         {
-            inputLines = File.ReadAllLines(inputFilePath);
-            _logger.LogDebug("Finished read learning input file");
+            ngram = new NGram(size);
+            NGrams.Add(size, ngram);
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Could not read the contents of the input file for learning.");
-            return;
-        }
-
-        foreach (string line in inputLines)
-        {
-            _logger.LogTrace($"Using input text \"{line}\"");
-            string[] words = line.Split(' ');
-            foreach (var item in NGrams)
-            {
-                _logger.LogDebug($"Learning {item.Size}-Grams");
-                item.Learn(words);
-            }
-        }
-
-        _logger.LogInformation("Finished learning language model");
+        ngram.AddNGram(context, next, possibility);
     }
 
-    public string GetArpaRepresentation()
+    public void GetArpaRepresentation(StreamWriter outputStreamWriter)
     {
-        _logger.LogInformation("Computing ARPA-Representation of language model...");
-
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.AppendLine("\\data\\");
-        foreach (var item in NGrams)
+        outputStreamWriter.WriteLine("\\data\\");
+        foreach (var item in NGrams.Values)
         {
             int count = 0;
             foreach (var ngram in item.NGrams.Values)
             {
                 count += ngram.Count();
             }
-            stringBuilder.AppendLine($"ngram {item.Size} = {count}");
+            outputStreamWriter.WriteLine($"ngram {item.Size} = {count}");
         }
-        stringBuilder.AppendLine();
-        foreach (var item in NGrams)
+        outputStreamWriter.WriteLine();
+        foreach (var item in NGrams.Values)
         {
-            stringBuilder.AppendLine(item.GetArpaRepresentation());
+            item.GetArpaRepresentation(outputStreamWriter);
+            outputStreamWriter.WriteLine();
         }
-        stringBuilder.AppendLine("\\end\\");
-
-        _logger.LogInformation("Finished computing ARPA-Representation of language model");
-        return stringBuilder.ToString();
+        outputStreamWriter.WriteLine("\\end\\");
+        outputStreamWriter.Flush();
     }
+
+    public void GetArpaRepresentation(Stream outputStream) => GetArpaRepresentation(new StreamWriter(outputStream));
 }
