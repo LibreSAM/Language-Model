@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using LanguageModel;
+using LanguageModel.Smoothing;
 using Microsoft.Extensions.Logging;
 
 namespace Learn;
@@ -21,7 +22,7 @@ public class Program
         var lmLearner = new LanguageModelLearner(loggerFactory);
         lmLearner.Learn(options.InputFilePath);
 
-        NGramLanguageModel languageModel = lmLearner.BuildLanguageModel();
+        NGramLanguageModel languageModel = lmLearner.BuildLanguageModel(new Regular());
 
         var outputBuffer = new MemoryStream();
         languageModel.GetArpaRepresentation(outputBuffer);

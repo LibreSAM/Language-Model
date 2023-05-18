@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using LanguageModel.Smoothing;
+using Microsoft.Extensions.Logging;
 
 namespace LanguageModel;
 public class LanguageModelLearner
 {
-    public IEnumerable<NGramCounter> NGramCounts;
+    public IList<NGramCounter> NGramCounts;
     private readonly ILogger _logger;
 
     public LanguageModelLearner(ILoggerFactory loggerFactory)
@@ -14,7 +15,7 @@ public class LanguageModelLearner
         NGramCounts = new List<NGramCounter>();
         for (uint i = 1; i <= size; i++)
         {
-            NGramCounts = NGramCounts.Append(new NGramCounter(i, loggerFactory.CreateLogger<NGramCounter>()));
+            NGramCounts.Add(new NGramCounter(i, loggerFactory.CreateLogger<NGramCounter>()));
         }
     }
 
@@ -49,7 +50,7 @@ public class LanguageModelLearner
         _logger.LogInformation("Finished learning language model");
     }
 
-    public NGramLanguageModel BuildLanguageModel()
+    public NGramLanguageModel BuildLanguageModel(ISmoothing smoother)
     {
         _logger.LogInformation("Computing ARPA-Representation of language model...");
         var languageModel = new NGramLanguageModel();
@@ -58,17 +59,12 @@ public class LanguageModelLearner
         {
             foreach (var context in item.NGrams)
             {
-                _logger.LogTrace("Counting occurences of context...");
-                int ngramCount = (int)context.Value.Sum(next => next.Value);
-                _logger.LogTrace($"Occurances of context {context.Key}: {ngramCount}");
-
                 foreach (var next in context.Value)
                 {
                     string ngram = $"{context.Key} {next.Key}";
-                    double p = (double)next.Value / ngramCount;
-                    double p_log10 = Math.Log10(p);
-                    _logger.LogTrace($"NGram \"{ngram}\": Occurances = {next.Value}; P = {p}; P_Log10 = {p_log10}");
-                    languageModel.AddNGram(item.Size, context.Key, next.Key, p_log10);
+                    double p = smoother.Smooth(next.Key, context.Key, NGramCounts);
+                    _logger.LogTrace($"NGram \"{ngram}\": Occurances = {next.Value}; smoothed P = {p}");
+                    languageModel.AddNGram(item.Size, context.Key, next.Key, p);
                 }
             }
         }
