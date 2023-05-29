@@ -22,7 +22,7 @@ public class Program
         var lmLearner = new LanguageModelLearner(loggerFactory);
         lmLearner.Learn(options.InputFilePath);
 
-        NGramLanguageModel languageModel = lmLearner.BuildLanguageModel(new Regular());
+        NGramLanguageModel languageModel = lmLearner.BuildLanguageModel(new RegularSmoothing());
 
         var outputBuffer = new MemoryStream();
         languageModel.GetArpaRepresentation(outputBuffer);
