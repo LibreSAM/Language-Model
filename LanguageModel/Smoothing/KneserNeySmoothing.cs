@@ -26,6 +26,6 @@ public class KneserNeySmoothing : ISmoothing
 
         // Sum
         double smoothedNGramProbability = firstTerm + lambda * pcont;
-        return smoothedNGramProbability;
+        return Math.Log10(smoothedNGramProbability);
     }
 }
