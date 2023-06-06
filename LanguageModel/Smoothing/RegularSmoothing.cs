@@ -1,5 +1,5 @@
 namespace LanguageModel.Smoothing;
-public class Regular : ISmoothing
+public class RegularSmoothing : ISmoothing
 {
     public double Smooth(string next, string context, IList<NGramCounter> ngrams)
     {
