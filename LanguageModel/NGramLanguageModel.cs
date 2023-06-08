@@ -46,12 +46,13 @@ public class NGramLanguageModel
     {
         // First line of header
         string? currentLine = inputStream.ReadLine();
-        if (!"\\data\\".Equals(currentLine))
+        string expected = "\\data\\";
+        if (!expected.Equals(currentLine))
         {
-            throw new InvalidDataException($"Invalid ARPA data: Expected \"\\data\\\", but got {currentLine}");
+            throw new InvalidDataException($"Invalid ARPA data: Expected \"{expected}\", but got {currentLine}");
         }
 
-        // Remaining part of header
+        // Remaining part of header, including empty line separating it from ngram data
         var counts = new Dictionary<int, int>();
         while((currentLine = inputStream.ReadLine()) != "")
         {
@@ -80,13 +81,6 @@ public class NGramLanguageModel
             counts.Add(ngramSize, ngramCount);
         }
 
-        // Empty line after header
-        currentLine = inputStream.ReadLine();
-        if (!"".Equals(currentLine))
-        {
-            throw new InvalidDataException($"Invalid ARPA data: Expected empty line, but got \"{currentLine}\"");
-        }
-
         counts.OrderBy(x => x.Key);
         var lm = new NGramLanguageModel();
 
@@ -95,9 +89,10 @@ public class NGramLanguageModel
         {
             // NGram probabilities - header saying size of following ngrams
             currentLine = inputStream.ReadLine();
-            if ($"\\{size}-grams:".Equals(currentLine))
+            expected = $"\\{size}-grams:";
+            if (!expected.Equals(currentLine))
             {
-                throw new InvalidDataException($"Invalid ARPA data: Expected \"{size}-grams:\", but got \"{currentLine}\"");
+                throw new InvalidDataException($"Invalid ARPA data: Expected \"{expected}\", but got \"{currentLine}\"");
             }
 
             // NGram probabilities - the real values
@@ -125,7 +120,8 @@ public class NGramLanguageModel
 
             // NGram probabilities - blank line after all ngrams of one size
             currentLine = inputStream.ReadLine();
-            if (!"".Equals(currentLine))
+            expected = "";
+            if (!expected.Equals(currentLine))
             {
                 throw new InvalidDataException($"Invalid ARPA data: Expected empty line, but got \"{currentLine}\"");
             }
@@ -133,9 +129,10 @@ public class NGramLanguageModel
 
         // Footer
         currentLine = inputStream.ReadLine();
-        if ("\\end\\".Equals(currentLine))
+        expected = "\\end\\";
+        if (!expected.Equals(currentLine))
         {
-            throw new InvalidDataException($"Invalid ARPA data: Expected \"\\end\\\", but got \"{currentLine}\"");
+            throw new InvalidDataException($"Invalid ARPA data: Expected \"{expected}\", but got \"{currentLine}\"");
         }
 
         return lm;
