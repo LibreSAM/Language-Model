@@ -1,4 +1,6 @@
-﻿namespace LanguageModel;
+﻿using System.Globalization;
+
+namespace LanguageModel;
 public class NGramLanguageModel
 {
     public readonly IDictionary<uint,NGram> NGrams;
@@ -108,9 +110,14 @@ public class NGramLanguageModel
                 {
                     throw new InvalidDataException($"Invalid ARPA data: Expected \"<probability> <ngram>\", but got {currentLine} - wrong ngram format");
                 }
-                if (!Double.TryParse(splitted[0], out double p))
+                if (!Double.TryParse(splitted[0], CultureInfo.InvariantCulture, out double pLog))
                 {
                     throw new InvalidDataException($"Invalid ARPA data: Expected \"<probability> <ngram>\" with probability being a double, but got {currentLine}");
+                }
+                double p = Math.Pow(10, pLog);
+                if (p > 1)
+                {
+                    Console.WriteLine($"WARN: Encountered a probability > 1: {p}");
                 }
                 string next = splitted.Last();
                 string context = String.Join(' ', splitted.Take(new Range(new Index(1), new Index(1, true))));
@@ -152,23 +159,41 @@ public class NGramLanguageModel
         {
             // get probability of ngram
             double p = 0;
+            string next = tokens[index];
             uint currentSearchedSize = size;
             do
             {
-                int contextStartIndex = (int)(index - currentSearchedSize);
-                string context = contextStartIndex > 0 ? String.Join(' ', tokens.Take(new Range(new Index(contextStartIndex), new Index(index - 1)))) : "";
-                string next = tokens[index];
+                // index of first word we have to consider as context for the current searched ngram length
+                int contextStartIndex = (int)(index - currentSearchedSize + 1);
+
+                // check if we actually got enough words for context with current searched ngram length,
+                // i.e. we can't cover the first word of the sentence with a 3-gram
+                if (contextStartIndex < 0) 
+                {
+                    currentSearchedSize--;
+                    continue;
+                }
+
+                // get context, first index is included, last is not, so we don't include the next word in context here
+                string context = String.Join(' ', tokens.Take(new Range(new Index(contextStartIndex), new Index((int)(index)))));
+
+                // check if we got a probability value for this ngram, if we have so we store it in p and the loop finishes as then p != 0
                 if (NGrams[currentSearchedSize].NGrams.ContainsKey(context) && NGrams[currentSearchedSize].NGrams[context].ContainsKey(next))
                 {
                     p = NGrams[currentSearchedSize].NGrams[context][next];
                 }
-                currentSearchedSize--;
+                else // no probability for this ngram in our database -> we have to consider shorter ngrams or abort if we already checked 1-grams
+                {
+                    currentSearchedSize--;
+                }
             } while (currentSearchedSize > 0 && p == 0); // check all ngram sizes starting from longest until we checked all or got a value
 
-            // multiply
+            // multiply to result
             perplexity *= p;
         }
 
-        return perplexity;
+        double perplexityLog10 = Math.Log10(perplexity);
+
+        return perplexityLog10;
     }
 }
