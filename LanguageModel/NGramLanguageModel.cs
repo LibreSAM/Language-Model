@@ -1,15 +1,32 @@
 ﻿using System.Globalization;
 
 namespace LanguageModel;
+
+/// <summary>
+/// Represents an ngram based & already trained language model.
+/// </summary>
 public class NGramLanguageModel
 {
+    /// <summary>
+    /// All ngrams that are contained in this language model.
+    /// </summary>
     public readonly IDictionary<uint,NGram> NGrams;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="NGramLanguageModel"/>.
+    /// </summary>
     public NGramLanguageModel()
     {
         NGrams = new Dictionary<uint,NGram>();
     }
 
+    /// <summary>
+    /// Adds a new ngram to this language model.
+    /// </summary>
+    /// <param name="size">The size of the ngram.</param>
+    /// <param name="context">The context of the ngram.</param>
+    /// <param name="next">The next word of the ngram.</param>
+    /// <param name="possibility">The probability of the ngram.</param>
     public void AddNGram(uint size, string context, string next, double possibility)
     {
         if (!NGrams.TryGetValue(size, out NGram? ngram))
@@ -20,6 +37,10 @@ public class NGramLanguageModel
         ngram.AddNGram(context, next, possibility);
     }
 
+    /// <summary>
+    /// Creates an ARPA-formatted representation of the language model that is modeled by this instance and writes it using the provided streamwriter.
+    /// </summary>
+    /// <param name="outputStreamWriter">The output streamwriter used to write the ARPA representation of the language model.</param>
     public void GetArpaRepresentation(StreamWriter outputStreamWriter)
     {
         outputStreamWriter.WriteLine("\\data\\");
@@ -42,8 +63,19 @@ public class NGramLanguageModel
         outputStreamWriter.Flush();
     }
 
+    /// <summary>
+    /// Creates an ARPA-formatted representation of the language model that is modeled by this instance and writes it to the provided output stream.
+    /// </summary>
+    /// <param name="outputStream">The output stream that the ARPA representation of the language model will be written to.</param>
     public void GetArpaRepresentation(Stream outputStream) => GetArpaRepresentation(new StreamWriter(outputStream));
 
+    /// <summary>
+    /// Creates a new instance of <see cref="NGramLanguageModel"/> that represents the
+    /// ARPA-formatted language model whose data is read using the provided stream reader.
+    /// </summary>
+    /// <param name="inputStream">The stream reader that will be used to read the ARPA-formatted language model data.</param>
+    /// <returns>A new instance od <see cref="NGramLanguageModel"/> that represents the read language model.</returns>
+    /// <exception cref="InvalidDataException">The provided ARPA-formatted data is not valid.</exception>
     public static NGramLanguageModel LoadFrom(StreamReader inputStream)
     {
         // First line of header
@@ -145,8 +177,20 @@ public class NGramLanguageModel
         return lm;
     }
 
+    /// <summary>
+    /// Creates a new instance of <see cref="NGramLanguageModel"/> that represents the
+    /// ARPA-formatted language model whose data is read using the provided stream reader.
+    /// </summary>
+    /// <param name="inputStream">The stream that the ARPA-formatted language model data will be read from.</param>
+    /// <returns>A new instance od <see cref="NGramLanguageModel"/> that represents the read language model.</returns>
+    /// <exception cref="InvalidDataException">The provided ARPA-formatted data is not valid.</exception>
     public static NGramLanguageModel LoadFrom(string filePath) => LoadFrom(File.OpenText(filePath));
 
+    /// <summary>
+    /// Computes the perplexity of a given input sentence using the language model data that is represented by this instance.
+    /// </summary>
+    /// <param name="sentence">The sentence to calculate the preplexity of.</param>
+    /// <returns>The perplexity of the sentence.</returns>
     public double GetPerplexity(string sentence)
     {
         List<string> tokens = sentence.Split(' ').ToList();

@@ -1,7 +1,19 @@
 namespace LanguageModel.Smoothing;
+
+/// <summary>
+/// Implements a Kneser-Ney smoothing algorithm based on the Kneser-ney probability equation.
+/// </summary>
 public class KneserNeySmoothing : ISmoothing
 {
     // cf. https://medium.com/@dennyc/a-simple-numerical-example-for-kneser-ney-smoothing-nlp-4600addf38b8
+
+    /// <summary>
+    /// Calculate the smoothed probability for a ngram using Kneser-Ney smoothing.
+    /// </summary>
+    /// <param name="next">The next word of the ngram.</param>
+    /// <param name="context">The context of the ngram.</param>
+    /// <param name="ngrams">A list of all ngrams to consider in the language model.</param>
+    /// <returns>The smoothed probability of the ngram.</returns>
     public double Smooth(string next, string context, IList<NGramCounter> ngrams)
     {
         int size = (context.Count() != 0 ? 1 : 0) + context.Count((c) => c == ' ') + 1;

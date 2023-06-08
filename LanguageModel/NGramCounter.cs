@@ -1,12 +1,28 @@
 ﻿using Microsoft.Extensions.Logging;
 
 namespace LanguageModel;
+
+/// <summary>
+/// Represents a counter for the occurrences of ngrams with a specified size. 
+/// </summary>
 public class NGramCounter
 {
+    /// <summary>
+    /// The size of the ngrams that this instance counts.
+    /// </summary>
     public readonly uint Size;
+
+    /// <summary>
+    /// The occurence counts of all ngrams that this instance has encountered.
+    /// </summary>
     public IDictionary<string, IDictionary<string, uint>> NGrams;
     private readonly ILogger _logger;
 
+    /// <summary>
+    /// Creates a new instance of <see cref="NGramCounter"/> with a specified size that will use the specified logger object to create log messages.
+    /// </summary>
+    /// <param name="size">The size of ngrams that the instance should count.</param>
+    /// <param name="logger">The logger object that the instance should use for creating log messages.</param>
     public NGramCounter(uint size, ILogger logger)
     {
         _logger = logger;
@@ -14,6 +30,10 @@ public class NGramCounter
         NGrams = new Dictionary<string, IDictionary<string, uint>>();
     }
     
+    /// <summary>
+    /// Learn's ngrams from a provided input sentence.
+    /// </summary>
+    /// <param name="line">The sentence to learn ngrams from.</param>
     public void Learn(string[] line)
     {
         _logger.LogDebug($"Started learning {Size}-Gram");
