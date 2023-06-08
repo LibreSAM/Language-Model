@@ -1,4 +1,6 @@
-﻿namespace LanguageModel;
+﻿using System.Globalization;
+
+namespace LanguageModel;
 public class NGram
 {
     public readonly uint Size;
@@ -27,7 +29,7 @@ public class NGram
             foreach (var next in context.Value)
             {
                 string ngram = $"{context.Key} {next.Key}";
-                outputStreamWriter.WriteLine($"{next.Value} {ngram}");
+                outputStreamWriter.WriteLine($"{next.Value.ToString(CultureInfo.InvariantCulture)} {ngram}");
             }
         }
     }
