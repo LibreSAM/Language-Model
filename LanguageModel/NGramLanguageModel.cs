@@ -149,11 +149,24 @@ public class NGramLanguageModel
         tokens.Insert(0, "<s>");
         tokens.Add("</s>");
         double perplexity = 1;
+        uint size = NGrams.Keys.Max();
 
         for (int index = 0; index < tokens.Count; index++)
         {
             // get probability of ngram
-            double p = 0.5;
+            double p = 0;
+            uint currentSearchedSize = size;
+            do
+            {
+                int contextStartIndex = (int)(index - currentSearchedSize);
+                string context = contextStartIndex > 0 ? String.Join(' ', tokens.Take(new Range(new Index(contextStartIndex), new Index(index - 1)))) : "";
+                string next = tokens[index];
+                if (NGrams[currentSearchedSize].NGrams.ContainsKey(context) && NGrams[currentSearchedSize].NGrams[context].ContainsKey(next))
+                {
+                    p = NGrams[currentSearchedSize].NGrams[context][next];
+                }
+                currentSearchedSize--;
+            } while (currentSearchedSize > 0 && p == 0); // check all ngram sizes starting from longest until we checked all or got a value
 
             // multiply
             perplexity *= p;
