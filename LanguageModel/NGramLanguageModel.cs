@@ -152,7 +152,7 @@ public class NGramLanguageModel
         List<string> tokens = sentence.Split(' ').ToList();
         tokens.Insert(0, "<s>");
         tokens.Add("</s>");
-        double perplexity = 1;
+        double sentenceProbability = 1;
         uint size = NGrams.Keys.Max();
 
         for (int index = 0; index < tokens.Count; index++)
@@ -189,11 +189,15 @@ public class NGramLanguageModel
             } while (currentSearchedSize > 0 && p == 0); // check all ngram sizes starting from longest until we checked all or got a value
 
             // multiply to result
-            perplexity *= p;
+            sentenceProbability *= p;
         }
 
-        double perplexityLog10 = Math.Log10(perplexity);
+        // calculate cross-entropy according to slides
+        double crossEntropy = (double)-1 / tokens.Count * Math.Log10(sentenceProbability);
 
-        return perplexityLog10;
+        // calculate perplexity
+        double perplexity = Math.Pow(2, crossEntropy);
+
+        return perplexity;
     }
 }
