@@ -16,7 +16,7 @@ public class Program
     /// <param name="args">The commandline arguments supplied when starting the application.</param>
     public static void Main(string[] args)
     {
-        Parser.Default.ParseArguments<LearnOptions>(args).WithParsed<LearnOptions>(Learn);
+        Parser.Default.ParseArguments<LearnOptions>(args).WithParsed(Learn);
     }
 
     /// <summary>
@@ -34,13 +34,13 @@ public class Program
         });
 
         // Object initialization
-        LanguageModelLearner lmLearner = new LanguageModelLearner(loggerFactory);
+        LanguageModelLearner lmLearner = new(loggerFactory);
 
         // Read inputs and count ngrams
         try
         {
             using FileStream inputStream = File.OpenRead(options.InputFilePath);
-            using StreamReader inputReader = new StreamReader(inputStream);
+            using StreamReader inputReader = new(inputStream);
             lmLearner.Learn(inputReader);
         }
         catch (ArgumentException ex)

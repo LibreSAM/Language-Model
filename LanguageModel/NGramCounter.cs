@@ -36,11 +36,11 @@ public class NGramCounter
     /// <param name="line">The sentence to learn ngrams from.</param>
     public void Learn(string[] line)
     {
-        _logger.LogDebug($"Started learning {Size}-Gram");
-        _logger.LogTrace($"Learning text: \"{String.Join(' ', line)}\"");
+        _logger.LogDebug("Started learning {Size}-Gram", Size);
+        _logger.LogTrace("Learning text: \"{String.Join(' ', line)}\"", string.Join(' ', line));
 
         // Prepare data structure and add padding to input
-        Queue<string> temp = new Queue<string>();
+        Queue<string> temp = new();
         for (int i = 0; i < Size; i++)
         {
             temp.Enqueue("<s>");
@@ -55,16 +55,18 @@ public class NGramCounter
         }
 
         // Get all ngrams of size that this instance is counting
-        while (temp.Count() >= Size)
+        while (temp.Count >= Size)
         {
             // Get next ngram
-            var ngram = new List<string>();
-            ngram.Add(temp.Dequeue());
+            var ngram = new List<string>
+            {
+                temp.Dequeue()
+            };
             for (int i = 0; i < Size - 1; i++)
             {
                 ngram.Add(temp.ElementAt(i));
             }
-            var context = String.Join(' ', ngram.Take(ngram.Count - 1));
+            var context = string.Join(' ', ngram.Take(ngram.Count - 1));
             var next = ngram.Last();
 
             // Check if this is an already known or a new ngram
@@ -73,24 +75,24 @@ public class NGramCounter
                 if (NGrams[context].ContainsKey(next))
                 {
                     // existing ngram -> increment occurrence count
-                    _logger.LogTrace($"Found occurance of existing ngram: \"{String.Join(' ', context)} {next}\"");
+                    _logger.LogTrace("Found occurance of existing ngram: \"{string.Join(' ', context)} {next}\"", string.Join(' ', context), next);
                     NGrams[context][next]++;
                 }
                 else
                 {
                     // Known context, but new next word -> add
-                    _logger.LogTrace($"Found new word that can follow on existing ngram context: \"{next}\" can follow on \"{String.Join(' ', context)}\"");
+                    _logger.LogTrace("Found new word that can follow on existing ngram context: \"{next}\" can follow on \"{string.Join(' ', context)}\"", next, string.Join(' ', context));
                     NGrams[context].Add(next, 1);
                 }
             }
             else
             {
                 // New context -> lazy initialization of object and store the new ngram
-                _logger.LogTrace($"Found new ngram: \"{String.Join(' ', ngram)}\"");
+                _logger.LogTrace("Found new ngram: \"{string.Join(' ', ngram)}\"", string.Join(' ', ngram));
                 NGrams.Add(context, new Dictionary<string, uint>() { { next, 1 } });
             }
         }
 
-        _logger.LogDebug($"Finished learning {Size}-Gram");
+        _logger.LogDebug("Finished learning {Size}-Gram", Size);
     }
 }

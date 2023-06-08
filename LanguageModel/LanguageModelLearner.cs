@@ -33,7 +33,7 @@ public class LanguageModelLearner
 
     /// <summary>
     /// Learn the language model using the text in the provided stream.Populates the
-    /// <see cref="LanguageModelLearner.NGramCounts"/> field with ngrams and their occurrence counts.
+    /// <see cref="NGramCounts"/> field with ngrams and their occurrence counts.
     /// </summary>
     /// <param name="input">The stream that the text that will be used for learning will be read from.</param>
     public void Learn(StreamReader input)
@@ -46,7 +46,7 @@ public class LanguageModelLearner
             // Learn every sentence in the input
             while ((currentLine = input.ReadLine()) != null)
             {
-                _logger.LogTrace($"Using input text \"{currentLine}\"");
+                _logger.LogTrace("Using input text \"{currentLine}\"", currentLine);
 
                 // Split into single words / tokens
                 string[] words = currentLine.Split(' ');
@@ -54,7 +54,7 @@ public class LanguageModelLearner
                 // Learn all ngram sizes from 1 up to the at instance creation specified value
                 foreach (var item in NGramCounts)
                 {
-                    _logger.LogDebug($"Learning {item.Size}-Grams");
+                    _logger.LogDebug("Learning {item.Size}-Grams", item.Size);
                     item.Learn(words);
                 }
             }
@@ -89,7 +89,7 @@ public class LanguageModelLearner
                     // Calculate probability of ngram
                     double p = smoother.Smooth(next.Key, context.Key, NGramCounts);
 
-                    _logger.LogTrace($"NGram \"{ngram}\": Occurances = {next.Value}; smoothed P = {p}");
+                    _logger.LogTrace("NGram \"{ngram}\": Occurances = {next.Value}; smoothed P = {p}", ngram, next.Value, p);
 
                     // Add the ngram to the language model that is being build
                     languageModel.AddNGram(item.Size, context.Key, next.Key, p);

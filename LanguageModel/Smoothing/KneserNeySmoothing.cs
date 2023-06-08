@@ -16,7 +16,7 @@ public class KneserNeySmoothing : ISmoothing
     /// <returns>The smoothed probability of the ngram.</returns>
     public double Smooth(string next, string context, IList<NGramCounter> ngrams)
     {
-        int size = (context.Count() != 0 ? 1 : 0) + context.Count((c) => c == ' ') + 1;
+        int size = (context.Length != 0 ? 1 : 0) + context.Count((c) => c == ' ') + 1;
         IDictionary<string, IDictionary<string, uint>> ngramTable = ngrams[size - 1].NGrams;
         IDictionary<string, uint> ngramsWithContext = ngramTable[context];
         uint occurencesOfContextBeforeAnything = (uint)ngramsWithContext.Sum(next => next.Value);
@@ -50,7 +50,7 @@ public class KneserNeySmoothing : ISmoothing
         if (lambda != 0)
         {
             int pcont_numerator = ngramTable.Count(following => following.Value.ContainsKey(next));
-            int ngramTableLength = ngramTable.Sum(_ => _.Value.Count());
+            int ngramTableLength = ngramTable.Sum(_ => _.Value.Count);
             pcont = (double)pcont_numerator / ngramTableLength;
         }
 

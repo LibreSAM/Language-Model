@@ -50,7 +50,7 @@ public class NGramLanguageModel
             int count = 0;
             foreach (var ngram in item.NGrams.Values)
             {
-                count += ngram.Count();
+                count += ngram.Count;
             }
             outputStreamWriter.WriteLine($"ngram {item.Size} = {count}");
         }
@@ -109,8 +109,8 @@ public class NGramLanguageModel
             bool success = true;
             success &= splitted[0].Equals("ngram");
             success &= splitted[2].Equals("=");
-            success &= Int32.TryParse(splitted[1], out int ngramSize);
-            success &= Int32.TryParse(splitted[3], out int ngramCount);
+            success &= int.TryParse(splitted[1], out int ngramSize);
+            success &= int.TryParse(splitted[3], out int ngramCount);
             if (!success)
             {
                 throw new InvalidDataException($"Invalid ARPA data: Expected \"ngram <x> = <y>\" with <x> and <y> being positive integers, but got {currentLine}");
@@ -124,8 +124,6 @@ public class NGramLanguageModel
             counts.Add(ngramSize, ngramCount);
         }
 
-        // Probably don't need the sort, but... just to be save that they are in the correct order
-        counts.OrderBy(x => x.Key);
         var lm = new NGramLanguageModel();
 
         // NGram probabilities
@@ -154,7 +152,7 @@ public class NGramLanguageModel
                 {
                     throw new InvalidDataException($"Invalid ARPA data: Expected \"<probability> <ngram>\", but got {currentLine} - wrong ngram format");
                 }
-                if (!Double.TryParse(splitted[0], CultureInfo.InvariantCulture, out double pLog))
+                if (!double.TryParse(splitted[0], CultureInfo.InvariantCulture, out double pLog))
                 {
                     throw new InvalidDataException($"Invalid ARPA data: Expected \"<probability> <ngram>\" with probability being a double, but got {currentLine}");
                 }
@@ -168,7 +166,7 @@ public class NGramLanguageModel
 
                 // Get next and context of ngram
                 string next = splitted.Last();
-                string context = String.Join(' ', splitted.Take(new Range(new Index(1), new Index(1, true))));
+                string context = string.Join(' ', splitted.Take(new Range(new Index(1), new Index(1, true))));
 
                 // Save to language model that is being build from ARPA-formatted serialized data
                 lm.AddNGram((uint)size, context, next, p);
@@ -239,7 +237,7 @@ public class NGramLanguageModel
                 }
 
                 // Get context, first index is included, last is not, so we don't include the next word in context here
-                string context = String.Join(' ', tokens.Take(new Range(new Index(contextStartIndex), new Index((int)(index)))));
+                string context = string.Join(' ', tokens.Take(new Range(new Index(contextStartIndex), new Index((int)(index)))));
 
                 // Check if we got a probability value for this ngram, if we have so we store it in p and the loop finishes as then p != 0
                 if (NGrams[currentSearchedSize].NGrams.ContainsKey(context) && NGrams[currentSearchedSize].NGrams[context].ContainsKey(next))

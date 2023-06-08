@@ -17,7 +17,7 @@ public class RegularSmoothing : ISmoothing
         // Calculate size of the context as we need this to count ngrams in the next step.
         // This counts zero-based. If the context is not empty, it has atleast one word.
         // When we add the count of spaces, we get the count of words in the context.
-        int size = (!String.IsNullOrWhiteSpace(context) ? 1 : 0) + context.Count((c) => c == ' ');
+        int size = (!string.IsNullOrWhiteSpace(context) ? 1 : 0) + context.Count((c) => c == ' ');
 
         // Count occurrences of complete ngrams
         IDictionary<string, uint> ngram = ngrams[size].NGrams[context];
