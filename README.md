@@ -17,6 +17,8 @@
 
 Die Anwendung kann mithilfe von Docker gebaut werden. Hierfür in das Hauptverzeichnis des Repositories wechseln und `docker build . -t language_model` ausführen. Hierdurch werden die Programme gebaut und direkt ausführbar in einem Docker-Image bereitgestellt.
 
+Im Image wird kein `ENTRYPOINT` und kein `CMD` gesetzt, damit der Anwender flexibel auswählen kann, welches Programm er mit welchen Dateien bzw. Parametern verwenden möchte.
+
 ## Starten der Programme
 
 Auf Basis des zuvor erstellten Docker-Images können die Anwendungungen innerhalb eines Docker-Containers direkt gestartet werden. Nachdem dieses wie beschrieben erstellt wurde, können die Programme mithilfe eines Befehls nach dem Muster `docker run language_model dotnet <Programmname>.dll <Parameter>` gestartet werden. Hierbei müssen die Platzhalter `<Programmname>` und `<Parameter>` durch die gewünschten Werte ersetzt werden.
@@ -47,3 +49,12 @@ Auf Basis des zuvor erstellten Docker-Images können die Anwendungungen innerhal
     | `-i`, `--text` | Required. The text to calculate the perplexity of. |
     | `-v`, `--verbose` | Enable verbose logging. |
     | `--help` | Display help screen. |
+
+- Beispiel
+  - Programm `Learn`
+  - Eingabedatei `/data/1_sample_text.txt`
+  - Ausgabedatei `/data/out_regular.txt`
+  - Smoothing: Regular
+  - Datenaustausch zwischen Host und Container über Volume, Pfad zum Volume `./data`
+  - Als Befehl ergibt sich hieraus:  
+    `docker run -v $(pwd)/data:/data language_model dotnet learn.dll -i /data/1_sample_text.txt -o /data/out_regular.arpa -s Regular`
