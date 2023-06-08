@@ -43,10 +43,15 @@ public class LanguageModelLearner
         string? currentLine;
         try
         {
+            // Learn every sentence in the input
             while ((currentLine = input.ReadLine()) != null)
             {
                 _logger.LogTrace($"Using input text \"{currentLine}\"");
+
+                // Split into single words / tokens
                 string[] words = currentLine.Split(' ');
+
+                // Learn all ngram sizes from 1 up to the at instance creation specified value
                 foreach (var item in NGramCounts)
                 {
                     _logger.LogDebug($"Learning {item.Size}-Grams");
@@ -72,6 +77,7 @@ public class LanguageModelLearner
         _logger.LogInformation("Computing ARPA-Representation of language model...");
         var languageModel = new NGramLanguageModel();
 
+        // Compute probabilities for all ngrams
         foreach (var item in NGramCounts)
         {
             foreach (var context in item.NGrams)
@@ -79,8 +85,13 @@ public class LanguageModelLearner
                 foreach (var next in context.Value)
                 {
                     string ngram = $"{context.Key} {next.Key}";
+
+                    // Calculate probability of ngram
                     double p = smoother.Smooth(next.Key, context.Key, NGramCounts);
+
                     _logger.LogTrace($"NGram \"{ngram}\": Occurances = {next.Value}; smoothed P = {p}");
+
+                    // Add the ngram to the language model that is being build
                     languageModel.AddNGram(item.Size, context.Key, next.Key, p);
                 }
             }

@@ -25,6 +25,7 @@ public class Program
     /// <param name="options">The parsed options that were supplied when launching the application.</param>
     public static void Learn(LearnOptions options)
     {
+        // Some logging initialization
         var loggerFactory = LoggerFactory.Create(builder =>
         {
             LogLevel logLevel = options.Verbose ? LogLevel.Trace : LogLevel.Information;
@@ -32,8 +33,10 @@ public class Program
             builder.AddSimpleConsole();
         });
 
+        // Object initialization
         LanguageModelLearner lmLearner = new LanguageModelLearner(loggerFactory);
 
+        // Read inputs and count ngrams
         try
         {
             using FileStream inputStream = File.OpenRead(options.InputFilePath);
@@ -65,11 +68,12 @@ public class Program
             HandleException("IO error.", ex, options.Verbose);
         }
 
-
+        // Create language model and serialize using ARPA representation
         NGramLanguageModel languageModel = lmLearner.BuildLanguageModel(Smoothing.Get(options.Smoothing));
         var outputBuffer = new MemoryStream();
         languageModel.GetArpaRepresentation(outputBuffer);
 
+        // Write ARPA representation of the trained language model to the output file
         try
         {
             using FileStream outputFile = File.OpenWrite(options.OutputFilePath);

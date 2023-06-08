@@ -37,6 +37,7 @@ public class NGram
     {
         if (!NGrams.ContainsKey(context))
         {
+            // Lazy initialization of objects
             NGrams.Add(context, new Dictionary<string, double>());
         }
         NGrams[context].Add(next, possibility);
@@ -49,10 +50,13 @@ public class NGram
     public void GetArpaRepresentation(StreamWriter outputStreamWriter)
     {
         outputStreamWriter.WriteLine($"\\{Size}-grams:");
+
+        // format all ngrams
         foreach (var context in NGrams)
         {
             foreach (var next in context.Value)
             {
+                // ARPA format. Uses InvariantCulture to always use a point as separator of floating point number
                 string ngram = $"{context.Key} {next.Key}";
                 outputStreamWriter.WriteLine($"{next.Value.ToString(CultureInfo.InvariantCulture)} {ngram}");
             }

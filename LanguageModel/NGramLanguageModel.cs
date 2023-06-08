@@ -43,6 +43,7 @@ public class NGramLanguageModel
     /// <param name="outputStreamWriter">The output streamwriter used to write the ARPA representation of the language model.</param>
     public void GetArpaRepresentation(StreamWriter outputStreamWriter)
     {
+        // Write header part
         outputStreamWriter.WriteLine("\\data\\");
         foreach (var item in NGrams.Values)
         {
@@ -53,12 +54,16 @@ public class NGramLanguageModel
             }
             outputStreamWriter.WriteLine($"ngram {item.Size} = {count}");
         }
+
+        // Write body with ngrams and their probabilities
         outputStreamWriter.WriteLine();
         foreach (var item in NGrams.Values)
         {
             item.GetArpaRepresentation(outputStreamWriter);
             outputStreamWriter.WriteLine();
         }
+
+        // Write end marker of ARPA format
         outputStreamWriter.WriteLine("\\end\\");
         outputStreamWriter.Flush();
     }
@@ -99,6 +104,8 @@ public class NGramLanguageModel
             {
                 throw new InvalidDataException($"Invalid ARPA data: Expected \"ngram <x> = <y>\", but got {currentLine}");
             }
+
+            // Parse one header line and check it
             bool success = true;
             success &= splitted[0].Equals("ngram");
             success &= splitted[2].Equals("=");
@@ -112,9 +119,12 @@ public class NGramLanguageModel
             {
                 throw new InvalidDataException($"Invalid ARPA data: Multiple count entries for ngram size {ngramSize}");
             }
+
+            // save the values to perform a consistency check later on
             counts.Add(ngramSize, ngramCount);
         }
 
+        // Probably don't need the sort, but... just to be save that they are in the correct order
         counts.OrderBy(x => x.Key);
         var lm = new NGramLanguageModel();
 
@@ -137,6 +147,8 @@ public class NGramLanguageModel
                 {
                     throw new InvalidDataException($"Invalid ARPA data: Expected \"ngram <x> = <y>\", but got NULL");
                 }
+
+                // Parse single ngram data
                 string[] splitted = currentLine.Split(' ');
                 if (splitted.Length != size + 1)
                 {
@@ -146,23 +158,30 @@ public class NGramLanguageModel
                 {
                     throw new InvalidDataException($"Invalid ARPA data: Expected \"<probability> <ngram>\" with probability being a double, but got {currentLine}");
                 }
+
+                // Calculate probability
                 double p = Math.Pow(10, pLog);
                 if (p > 1)
                 {
                     Console.WriteLine($"WARN: Encountered a probability > 1: {p}");
                 }
+
+                // Get next and context of ngram
                 string next = splitted.Last();
                 string context = String.Join(' ', splitted.Take(new Range(new Index(1), new Index(1, true))));
 
+                // Save to language model that is being build from ARPA-formatted serialized data
                 lm.AddNGram((uint)size, context, next, p);
             }
 
             // NGram probabilities - blank line after all ngrams of one size
+            // This will recognize if the actual ngram counts and these in the header match.
+            // If not this will throw an exception.
             currentLine = inputStream.ReadLine();
             expected = "";
             if (!expected.Equals(currentLine))
             {
-                throw new InvalidDataException($"Invalid ARPA data: Expected empty line, but got \"{currentLine}\"");
+                throw new InvalidDataException($"Invalid ARPA data: Expected empty line, but got \"{currentLine}\". Probably the header is not consistent with the data found in the body.");
             }
         }
 
@@ -199,18 +218,19 @@ public class NGramLanguageModel
         double sentenceProbability = 1;
         uint size = NGrams.Keys.Max();
 
+        // Calculate perplexity by splitting into ngrams, checking for match in language model and multiplying the results according to formula in slides
         for (int index = 0; index < tokens.Count; index++)
         {
-            // get probability of ngram
+            // Get probability of ngram
             double p = 0;
             string next = tokens[index];
             uint currentSearchedSize = size;
             do
             {
-                // index of first word we have to consider as context for the current searched ngram length
+                // Index of first word we have to consider as context for the current searched ngram length
                 int contextStartIndex = (int)(index - currentSearchedSize + 1);
 
-                // check if we actually got enough words for context with current searched ngram length,
+                // Check if we actually got enough words for context with current searched ngram length,
                 // i.e. we can't cover the first word of the sentence with a 3-gram
                 if (contextStartIndex < 0) 
                 {
@@ -218,28 +238,29 @@ public class NGramLanguageModel
                     continue;
                 }
 
-                // get context, first index is included, last is not, so we don't include the next word in context here
+                // Get context, first index is included, last is not, so we don't include the next word in context here
                 string context = String.Join(' ', tokens.Take(new Range(new Index(contextStartIndex), new Index((int)(index)))));
 
-                // check if we got a probability value for this ngram, if we have so we store it in p and the loop finishes as then p != 0
+                // Check if we got a probability value for this ngram, if we have so we store it in p and the loop finishes as then p != 0
                 if (NGrams[currentSearchedSize].NGrams.ContainsKey(context) && NGrams[currentSearchedSize].NGrams[context].ContainsKey(next))
                 {
                     p = NGrams[currentSearchedSize].NGrams[context][next];
                 }
-                else // no probability for this ngram in our database -> we have to consider shorter ngrams or abort if we already checked 1-grams
+                else
                 {
+                    // No probability for this ngram in our database -> we have to consider shorter ngrams or abort if we already checked 1-grams
                     currentSearchedSize--;
                 }
             } while (currentSearchedSize > 0 && p == 0); // check all ngram sizes starting from longest until we checked all or got a value
 
-            // multiply to result
+            // Multiply to result
             sentenceProbability *= p;
         }
 
-        // calculate cross-entropy according to slides
+        // Calculate cross-entropy according to formula in slides
         double crossEntropy = (double)-1 / tokens.Count * Math.Log10(sentenceProbability);
 
-        // calculate perplexity
+        // Calculate perplexity according to formula in slides
         double perplexity = Math.Pow(2, crossEntropy);
 
         return perplexity;
