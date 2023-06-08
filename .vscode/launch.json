@@ -15,12 +15,14 @@
                 "-v",
                 "-i",
                 "1_sample_text.txt",
+                "-o",
+                "lm.txt",
                 "-s",
                 "KneserNey"
             ],
             "cwd": "${workspaceFolder}/Learn",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
-            "console":"integratedTerminal",
+            "console":"internalConsole",
             "stopAtEntry": false
         },
         {

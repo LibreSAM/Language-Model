@@ -19,32 +19,27 @@ public class LanguageModelLearner
         }
     }
 
-    public void Learn(string inputFilePath)
+    public void Learn(StreamReader input)
     {
         _logger.LogInformation("Starting to learn the language model");
-        _logger.LogDebug($"Input file for learning: \"{inputFilePath}\"");
 
-        IEnumerable<string> inputLines;
+        string? currentLine;
         try
         {
-            inputLines = File.ReadAllLines(inputFilePath);
-            _logger.LogDebug("Finished read learning input file");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Could not read the contents of the input file for learning.");
-            return;
-        }
-
-        foreach (string line in inputLines)
-        {
-            _logger.LogTrace($"Using input text \"{line}\"");
-            string[] words = line.Split(' ');
-            foreach (var item in NGramCounts)
+            while ((currentLine = input.ReadLine()) != null)
             {
-                _logger.LogDebug($"Learning {item.Size}-Grams");
-                item.Learn(words);
+                _logger.LogTrace($"Using input text \"{currentLine}\"");
+                string[] words = currentLine.Split(' ');
+                foreach (var item in NGramCounts)
+                {
+                    _logger.LogDebug($"Learning {item.Size}-Grams");
+                    item.Learn(words);
+                }
             }
+        }
+        catch (IOException ex)
+        {
+            _logger.LogError(ex, "Error reading input: IO error");
         }
 
         _logger.LogInformation("Finished learning language model");
