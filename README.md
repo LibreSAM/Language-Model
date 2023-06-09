@@ -36,6 +36,16 @@
 
 ### Berechnung der Perplexität eines Eingabesatzes
 
+- Das Program akzeptiert verschiedene Parameter, die bei dem Start von ebendiesem übergeben werden können. Auf diese Weise erhält das Programm alle benötigten Informationen, beispielsweise den Pfad zu dem zu verwendenden Language Model im ARPA-Format und dem Eingabesatz, von dem die Perplexität bestimmt werden soll. Diese werden in einer Instanz der Klasse `PerplexityCalcOptions` (siehe `Perplexity/PerplexityCalcOptions.cs`) gespeichert.
+- Anschließend wird das im ARPA-Format dargestellte Language Model eingelesen und die enthaltenen Daten extrahiert. Hierbei wird das ARPA_Format zeilenweise eingelesen und analysiert. Ist dieses gültig, so wird am Ende eine Instanz der Klasse `NGramLanguageModel` (siehe `LanguageModel/NGramLanguageModel.cs`) zurückgegeben. Werden bei dem Einlesen der ARPA-Daten hingegen Daten gefunden, die nicht dem ARPA-Format entsprechen, so wird ein Fehler gemeldet.
+- Nachdem das Language Model geladen ist, wird die Perplexität des Eingabesatzes berechnet. Hierzu wird dieser in die einzelnen Wörter aufgeteilt und um Satzbeginn- und Satzendetoken ergänzt.
+  - Hierbei wird nach Jurafsky, Formel 3.9 vorgegangen.
+  - Zunächst wird für jedes Wort im Eingabesatz ein möglichst langes N-Gram gesucht, das diesem Wort und möglichst vielen vorhergehenden Wörtern (als Kontext) entspricht.
+  - Alle der so gefundenen Einzelwahrscheinlichkeiten werden miteinander multipliziert, um nach Jurafsky, Formel 3.9, die Wahrscheinlichkeit für den gesamten Eingabesatz zu bestimmen.
+  - Aus dieser wird nach der folgenden Formel aus der Vorlesung die Cross-Entropy `H(W)` das Eingabesatzes `W` berechnet: ![cross-entropy-formula](doc/img/cross-entropy-formula.png)
+  - Mithilfe der nachfolgenden Formel für die Berechnung der Perplexität eines Satzes `W` aus dessen Cross-Entropy `H(W)` aus der Vorlesung wird anschließend die Perplexität des Eingabesatzes berechnet. ![perplexity-formula](doc/img/perplexity-formula.png)
+- Abschließend wird die so ermittelte Perplexität des Eingabesatzes auf der Konsole ausgegeben.
+
 ## Struktur des Repositories
 
 | Verzeichnis | Inhalt |
