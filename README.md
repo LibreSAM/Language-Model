@@ -14,6 +14,7 @@
     - [Lernen eines Language-Models](#lernen-eines-language-models)
   - [Smoothing](#smoothing)
     - [Berechnung der Perplexität eines Eingabesatzes](#berechnung-der-perplexität-eines-eingabesatzes)
+    - [Datenstruktur für N-Gramme](#datenstruktur-für-n-gramme)
   - [Struktur des Repositories](#struktur-des-repositories)
   - [Bauen der Programme](#bauen-der-programme)
   - [Starten der Programme](#starten-der-programme)
@@ -34,6 +35,10 @@
 
 ## Smoothing
 
+- Die Implementierungen verschiedener Smoothing-Verfahren befinden sich im Verzeichnis `LanguageModel/Smoothing`. Alle Implementierung von Smoothing-Verfahren implementieren das Interface `ISmoothing`, damit zur laufzeit entsprechend der Auswahl des Anwenders festgelegt werden kann, welches Verfahren eingesetzt werden soll.
+- Die Implementierungen weisen alle eine Methode `Smooth` auf, die als Parameter zum einen das N-Gram erhält, für das die Wahrscheinlichkeit bestimmt werden soll, und zum anderen alle im Language Model vorhandenen N-Gramme, da diese bei einigen Smoothing-Verfahren benötigt werden. Die Methode `Smooth` gibt nach ihrer Ausführung die berechnete Wahrscheinlichkeit des N-Grams zurück, wobei bei der Berechnung das gewählte Smoothing-Verfahren angewandt wurde.
+- Die Implementierung des Kneser-Ney-Smoothings richtet sich nach Jurafsky (3.7), wobei die einzelnen Bestandteile der zugrundeliegenden Formeln nacheinander berechnet wurden.
+
 ### Berechnung der Perplexität eines Eingabesatzes
 
 - Das Program akzeptiert verschiedene Parameter, die bei dem Start von ebendiesem übergeben werden können. Auf diese Weise erhält das Programm alle benötigten Informationen, beispielsweise den Pfad zu dem zu verwendenden Language Model im ARPA-Format und dem Eingabesatz, von dem die Perplexität bestimmt werden soll. Diese werden in einer Instanz der Klasse `PerplexityCalcOptions` (siehe `Perplexity/PerplexityCalcOptions.cs`) gespeichert.
@@ -45,6 +50,12 @@
   - Aus dieser wird nach der folgenden Formel aus der Vorlesung die Cross-Entropy `H(W)` das Eingabesatzes `W` berechnet: ![cross-entropy-formula](doc/img/cross-entropy-formula.png)
   - Mithilfe der nachfolgenden Formel für die Berechnung der Perplexität eines Satzes `W` aus dessen Cross-Entropy `H(W)` aus der Vorlesung wird anschließend die Perplexität des Eingabesatzes berechnet. ![perplexity-formula](doc/img/perplexity-formula.png)
 - Abschließend wird die so ermittelte Perplexität des Eingabesatzes auf der Konsole ausgegeben.
+
+### Datenstruktur für N-Gramme
+
+- Die Informationen zu N-Grammen werden in einer speziellen Datenstruktur abgespeichert, die die N-Gramme nicht zusammenhängend speichert, sondern in mehrere Teile unterteilt.
+- In dieser wird zunächst über den Kontext des N-Grams und anschließend über das "nächste Wort" des NGrammes indiziert. Diese Struktur reduziert zum einen die Größe jeder einzelnen Listenebene, wodurch die zur Suche eines bestimmten Elementes benötigte zeit reduziert werden kann, da diese bei zunehmender Listengröße stark ansteigt. Dies hilft das Lernen von Language Modeln und das berechnen der Perplexität eines Satzes zu beschleunigen, da hierbei viele Such- und Zählvorgänge ausgeführt werden müssen.
+- Zugleich können durch diese Struktur einige Informationen ohne Suche ermittelt werden, beispielsweise wie viele verschiedene Wörter auf einen Kontext folgen können. Insbesondere müssen in diesem Fall nicht alle N-Gramme durchsucht werden, stattdessen können einfach die Anzahl der Einträge gezählt oder die zugeordneten Werte addiert werden, um beispielsweise die Anzahl an verschiedenen Wörtern zu bestimmen, die auf einen Kontext folgen können.
 
 ## Struktur des Repositories
 
