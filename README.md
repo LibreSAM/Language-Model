@@ -12,6 +12,7 @@
   - [TOC](#toc)
   - [Bauen der Programme](#bauen-der-programme)
   - [Starten der Programme](#starten-der-programme)
+  - [Struktur des Repositories](#struktur-des-repositories)
 
 ## Bauen der Programme
 
@@ -55,6 +56,20 @@ Auf Basis des zuvor erstellten Docker-Images können die Anwendungungen innerhal
   - Eingabedatei `/data/1_sample_text.txt`
   - Ausgabedatei `/data/out_regular.txt`
   - Smoothing: Regular
-  - Datenaustausch zwischen Host und Container über Volume, Pfad zum Volume `./data`
+  - Datenaustausch zwischen Host und Container über Volume, Pfade zum Volume hier lokal `./data`, das auf den Pfad `/data` des Containers abgebildet wird
   - Als Befehl ergibt sich hieraus:  
     `docker run -v $(pwd)/data:/data language_model dotnet learn.dll -i /data/1_sample_text.txt -o /data/out_regular.arpa -s Regular`
+
+## Struktur des Repositories
+
+| Verzeichnis | Inhalt |
+|-|-|
+| `.vscode/` | Enthält erforderliche Metadaten für die Verwendung von VS Code als IDE. |
+| `LanguageModel/` | Enthält eine selbsterstellte Bibliothek, die Funktionen, die von diesen beiden Programmen genutzt werden, bereitstellt. |
+| `LanguageModel/Smoothing/` | Enthält die Implementierung von verschiedenen Smoothing-Verfahren, die bei dem Lernen eines Language Models eingesetzt werden können. Aktuell sind Regular-Smoothing und Kneser-Ney-Smoothing implementiert. |
+| `Learn/` | Enthält das Programm, mit dem ein Language Model aus einem Eingabetext gelernt werden kann. |
+| `Perplexity/` | Enthält das Programm, mit dem die Perplexität eines Eingabesatzes unter Verwendung eines im ARPA-Format bereitgestellten Language Models bestimmt werden kann. |
+| `.gitignore` | gitignore-Datei - definiert, welche Dateien nicht von Git versioniert werden sollen. |
+| `Dockerfile` | Ermöglicht die automatisierte Erstellung eines Docker-Images, in dem die Programme direkt ausgeführt werden können. Bei der Erstellung des Images werden die Projekte kompiliert und die benötigte Laufzeitumgebung installiert. |
+| `language_model.sln` | Definiert eine Projektmappe, durch die mehrere Projekte zeitgleich in einer Instanz einer IDE wie bspw. Visual Studio geöffnet werden können. Diese Datei ist nicht zwingend erforderlich, vereinfacht aber bei vielen IDEs die Arbeit. |
+| `README.md` | Dieses Readme. Enthält Dokumentation zu dem Projekt. |
