@@ -6,26 +6,35 @@
 | Kai Petelski |
 | Jannick Gutekunst |
 
-## TOC
+## Table of Contents
 
 - [Aufgabe 2 - Language Model](#aufgabe-2---language-model)
-  - [TOC](#toc)
-  - [Lernen eines Language-Models](#lernen-eines-language-models)
-  - [Berechnung der Perplexität eines Eingabesatzes](#berechnung-der-perplexität-eines-eingabesatzes)
+  - [Table of Contents](#table-of-contents)
+  - [Abläufe \& Implementierung](#abläufe--implementierung)
+    - [Lernen eines Language-Models](#lernen-eines-language-models)
+  - [Smoothing](#smoothing)
+    - [Berechnung der Perplexität eines Eingabesatzes](#berechnung-der-perplexität-eines-eingabesatzes)
   - [Struktur des Repositories](#struktur-des-repositories)
   - [Bauen der Programme](#bauen-der-programme)
   - [Starten der Programme](#starten-der-programme)
 
-## Lernen eines Language-Models
+## Abläufe & Implementierung
+
+### Lernen eines Language-Models
 
 - Das Program akzeptiert verschiedene Parameter, die bei dem Start von ebendiesem übergeben werden können. Auf diese Weise erhält das Programm alle benötigten Informationen, beispielsweise den Pfad zu dem Eingabetext, der zu verwendenden Smoothing-Variante und dem Ausgabepfad. Diese werden in einer Instanz der Klasse `LearnOptions` (siehe `Learn/LearnOptions.cs`) gespeichert.
 - Anschließend wird in der Funktion `Learn()` der Klasse `Program` (siehe `Learn/Program.cs`) eine Instanz der Klasse `LanguageModelLearner` (siehe `LanguageModel/LanguageModellearner`) erstellt. Diese Klasse besitzt eine  interne Datenstruktur sowie Funktionen, die es ermöglichen, die in einem Text vorkommenden N-Gramme zu zählen und hieraus ein Language Model zu generieren. Desweiteren wird eine Instanz der Klasse `StreamReader` erstellt, die es ermöglicht, Text aus der angegebenen Eingabedatei zu lesen. Hierbei werden über einen `try {...} catch (...) {...}`-Mechanismus auftretende Fehler behandelt und an den Nutzer kommuniziert. Die Ausgabe dieser Fehler an den Nutzer ist an die Methode `HandleExceptions()` delegiert, um die Duplizierung von weitestgehend identischem Code soweit wie möglich zu vermeiden.
-- Nach diesen Vorbereitungen werden durch den Aufruf der Methode `Learn` auf die zuvor erstellte Instanz der Klasse `LanguageModelLearner` die in der Eingabedatei vorkommenden N-Gramme gezählt. Diese Daten werden in der internen Datenstruktur der Instanz zwischengespeichert.
-- Nachdem die N-Gramme im Lerntext gezählt wurden, wird aus deren Auftrittshäufigkeiten in dem Aufruf `BuildLanguageModel(Smoothing)` ein Language Model erzeugt. Die wesentliche Aktion, die hierbei durchgeführt wird, ist die Berechnung der N-Gram Wahrscheinlichkeiten unter Anwendung des bei dem Aufruf angegebenen Smoothing-Verfahrens. Als Ergebnis wird von dieser Funktion eine Instanz der Klasse `NGramLanguageModel` zurückgegeben, die intern in einer Datenstruktur die N-Gramme und deren Wahrscheinlichkeiten enthält.
+- Nach diesen Vorbereitungen werden durch den Aufruf der Methode `Learn` auf die zuvor erstellte Instanz der Klasse `LanguageModelLearner` die in der Eingabedatei vorkommenden N-Gramme gezählt. Hierbei werden Unigramme, Bigramme und Trigramme berücksichtigt. Diese Daten werden in der internen Datenstruktur der Instanz zwischengespeichert.
+  - Hierbei wird jede Zeile eingelesen und in ihre einzelnen Wörter aufgeteilt. Zusätzlich wird diese Liste mit den Token für Satzanfang und Satzende ergänzt.
+  - Anschließend werden aus dieser Liste von Token alle vorkommenden N-Gramme gebildet und gezählt. Hierbei werden zum ersten mal vorkommende N-Gramme in der Datenstruktur ergänzt und deren Vorkommenszähler auf 1 gesetzt, bei erneut auftretenden wird der Vorkommenszähler entsprechend erhöht.
+  - Dies ist in der Klasse `NGramCounter` realisiert (siehe `LanguageModel/NGramCounter`). Diese Klasse ist so designt, dass eine Instanz von dieser immer nur die Vorkommen von N-Grams einer bei Instanziierung festgelegten Länge zählt, weshalb die Methode `Learn` der Klasse `LanguageModelLearner` jede Zeile durch alle zu ihr gehörenden Instanzen der Klasse `NGramCounter` bearbeiten lässt.
+- Nachdem die N-Gramme im Lerntext gezählt wurden, wird aus deren Auftrittshäufigkeiten in dem Aufruf `BuildLanguageModel(Smoothing)` ein Language Model erzeugt. Die wesentliche Aktion, die hierbei durchgeführt wird, ist die Berechnung der N-Gram Wahrscheinlichkeiten unter Anwendung des bei dem Aufruf angegebenen Smoothing-Verfahrens. Diese Berechnung ist in ein eigenes Objekt ausgelagert, dem bei dem Aufruf alle benötigten Informationen übergeben werden, damit das zu verwendende Smoothing-Verfahren beliebig ausgetauscht werden kann. Hierfür wurde das Interface `ISmoothing` angelegt, das alle Implementierungen von Smoothing-Verfahren implementieren. Die Klasse `Smoothing` dient hierbei als Hilfsfunktion, um aus dem Namen eines Smoothing-Verfahrens eine Instanz der entsprechenden Klasse zu erzeugen. Als Ergebnis wird von dieser Funktion eine Instanz der Klasse `NGramLanguageModel` zurückgegeben, die intern in einer Datenstruktur die N-Gramme und deren Wahrscheinlichkeiten enthält.
 - Abschließend wird auf dieses neue Objekt die Funktion `GetArpaRepresentation` aufgerufen, wodurch die textbasierte ARPA-Darstellung dieses Language Models in einem `Stream` zwischengespeichert wird. Diese Zwischenspeicherung bietet gegenüber dem direkten Schreiben auf den Datenträger den Vorteil, dass zum einen die Datei auf einmal und nicht in kleinen Stücken geschrieben wird, wodurch die Anzahl der erforderlichen Datenträgerzugriffe minimiert und somit auch die Ausführungszeit gesenkt werden kann. Desweiteren können die zwischengespeicherten Daten auch noch weiterverwendet werden, um beispielsweise die ARPA-Darstellung zusätzlich auf der Konsolenoberfläche auszugeben ohne dass die Daten zunächst von dem Datenträger gelesen werden müssen.
 - Als letztes wird die bei Programmstart angegebene Ausgabedatei mittels `File.OpenWrite` schreibend geöffnet und die ARPA-Darstellung des Language Models in diese geschrieben.
 
-## Berechnung der Perplexität eines Eingabesatzes
+## Smoothing
+
+### Berechnung der Perplexität eines Eingabesatzes
 
 ## Struktur des Repositories
 
