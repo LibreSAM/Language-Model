@@ -76,7 +76,7 @@ public class Program
         // Write ARPA representation of the trained language model to the output file
         try
         {
-            using FileStream outputFile = File.OpenWrite(options.OutputFilePath);
+            using FileStream outputFile = File.Create(options.OutputFilePath);
             outputBuffer.WriteTo(outputFile);
         }
         catch (UnauthorizedAccessException ex)
