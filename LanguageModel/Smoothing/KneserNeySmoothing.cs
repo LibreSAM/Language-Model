@@ -115,17 +115,21 @@ public class KneserNeySmoothing : ISmoothing
         int size = (context.Length != 0 ? 1 : 0) + context.Count((c) => c == ' ') + 1;
         IDictionary<string, IDictionary<string, uint>> ngramTable = ngrams[size - 1].NGrams;
 
-        if (size > 1) // Higher orders -> use continuation count method
+        if (size > 2) // Higher orders -> use continuation count method
         {
             // Jurafsky (3.7), formula 3.40
             IEnumerable<string> currentContext = context.Split(' ');
             string newContext = string.Join(' ', currentContext.TakeLast(size - 2));
             double pcont = Smooth(next, newContext, ngrams, false);
-
-            // Jurafsky (3.7), formula 3.38
-            // int pcont_numerator = ngramTable.Count(following => following.Value.ContainsKey(next));
-            // int ngramTableLength = ngramTable.Sum(_ => _.Value.Count);
-            // double pcont = (double)pcont_numerator / ngramTableLength;
+            return pcont;
+        }
+        else if (size == 2)
+        {
+            // For Bigrams
+            // Jurafsky (3.7), formula 3.37
+            int pcont_numerator = ngramTable.Count(following => following.Value.ContainsKey(next));
+            int ngramTableLength = ngramTable.Sum(_ => _.Value.Count);
+            double pcont = (double)pcont_numerator / ngramTableLength;
 
             return pcont;
         }
