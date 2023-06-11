@@ -28,6 +28,6 @@ public class RegularSmoothing : ISmoothing
 
         // Calculate probability of ngram based on occurrence counts
         double p = (double)occurrences / contextCount;
-        return Math.Log10(p);
+        return p;
     }
 }
