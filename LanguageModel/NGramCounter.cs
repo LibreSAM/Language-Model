@@ -39,8 +39,8 @@ public class NGramCounter
         _logger.LogDebug("Started learning {Size}-Gram", Size);
         _logger.LogTrace("Learning text: \"{currentLine}\"", string.Join(' ', line));
 
-        // Count of sentence start & end padding - we only add a single padding start & end element
-        int sentenceStartEndPadding = 1;
+        // Count of sentence start & end padding - According to Jurafsky (3.3), PDF page 6 at the bottom
+        uint sentenceStartEndPadding = Size;
 
         // Prepare data structure and add padding to input
         Queue<string> temp = new();
