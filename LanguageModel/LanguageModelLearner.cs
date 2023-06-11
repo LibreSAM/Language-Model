@@ -92,7 +92,7 @@ public class LanguageModelLearner
                     _logger.LogTrace("NGram \"{ngram}\": Occurances = {next.Value}; smoothed P = {p}", ngram, next.Value, p);
 
                     // Add the ngram to the language model that is being build
-                    languageModel.AddNGram(item.Size, context.Key, next.Key, p);
+                    languageModel.AddNGram(item.Size, context.Key, next.Key, Math.Log10(p));
                 }
             }
         }

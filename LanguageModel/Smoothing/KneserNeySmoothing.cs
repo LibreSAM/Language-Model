@@ -9,6 +9,7 @@ public class KneserNeySmoothing : ISmoothing
 
     /// <summary>
     /// Calculate the smoothed probability for a ngram using Kneser-Ney smoothing.
+    /// This is implemented according to Jurafsky (3.7), formula 3.40
     /// </summary>
     /// <param name="next">The next word of the ngram.</param>
     /// <param name="context">The context of the ngram.</param>
@@ -18,6 +19,7 @@ public class KneserNeySmoothing : ISmoothing
 
     /// <summary>
     /// Calculate the smoothed probability for a ngram using Kneser-Ney smoothing.
+    /// This is implemented according to Jurafsky (3.7), formula 3.40
     /// </summary>
     /// <param name="next">The next word of the ngram.</param>
     /// <param name="context">The context of the ngram.</param>
@@ -36,9 +38,10 @@ public class KneserNeySmoothing : ISmoothing
 
         // Sum
         double smoothedNGramProbability = firstTerm + lambda * pcont;
-        return Math.Log10(smoothedNGramProbability);
+        return smoothedNGramProbability;
     }
 
+    // Algorithm is different for highest order and lower orders, see Jurafsky (3.7), formula 3.41
     private double CalculateFirstTerm(string next, string context, IList<NGramCounter> ngrams, bool isHighestOrder)
     {
         if (isHighestOrder)
@@ -51,6 +54,7 @@ public class KneserNeySmoothing : ISmoothing
         }
     }
 
+    // Jurafsky (3.7), formula 3.41, first case
     private double CalculateFirstTermHighestOrder(string next, string context, IList<NGramCounter> ngrams)
     {
         int size = (context.Length != 0 ? 1 : 0) + context.Count((c) => c == ' ') + 1;
@@ -64,6 +68,7 @@ public class KneserNeySmoothing : ISmoothing
         return firstTerm;
     }
 
+    // Jurafsky (3.7), formula 3.41, second case
     private double CalculateFirstTermLowerOrders(string next, string context, IList<NGramCounter> ngrams)
     {
         int size = (context.Length != 0 ? 1 : 0) + context.Count((c) => c == ' ') + 1;
@@ -93,6 +98,7 @@ public class KneserNeySmoothing : ISmoothing
         return firstTerm;
     }
 
+    // Jurafsky (3.7), formula 3.39
     private double CalculateLambda(string context, IList<NGramCounter> ngrams)
     {
         int size = (context.Length != 0 ? 1 : 0) + context.Count((c) => c == ' ') + 1;
@@ -111,13 +117,21 @@ public class KneserNeySmoothing : ISmoothing
 
         if (size > 1) // Higher orders -> use continuation count method
         {
-            int pcont_numerator = ngramTable.Count(following => following.Value.ContainsKey(next));
-            int ngramTableLength = ngramTable.Sum(_ => _.Value.Count);
-            double pcont = (double)pcont_numerator / ngramTableLength;
+            // Jurafsky (3.7), formula 3.40
+            IEnumerable<string> currentContext = context.Split(' ');
+            string newContext = string.Join(' ', currentContext.TakeLast(size - 2));
+            double pcont = Smooth(next, newContext, ngrams, false);
+
+            // Jurafsky (3.7), formula 3.38
+            // int pcont_numerator = ngramTable.Count(following => following.Value.ContainsKey(next));
+            // int ngramTableLength = ngramTable.Sum(_ => _.Value.Count);
+            // double pcont = (double)pcont_numerator / ngramTableLength;
+
             return pcont;
         }
         else // Lowest order -> uniform distribution
         {
+            // Jurafsky (3.7), formula 3.42
             // For 1-grams, count length of 1-gram table as described above, size - 1 always equals 1 in this case.
             // 1-grams only can have the context "", so we don't need to perform the whole searching process like above for higher orders.
             int unigramCount = ngrams[0].NGrams[""].Count;
