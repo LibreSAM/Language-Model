@@ -1,10 +1,12 @@
 # Aufgabe 2 - Language Model
 
-| Gruppenmitglieder |
-|-|
-| Robin Augenstein |
-| Kai Petelski |
-| Jannick Gutekunst |
+- Link zum Repo: [github.com/LibreSAM/Language-Model](https://github.com/LibreSAM/Language-Model)
+
+- | Gruppenmitglieder |
+  |-|
+  | Robin Augenstein |
+  | Kai Petelski |
+  | Jannick Gutekunst |
 
 ## Table of Contents
 
@@ -12,7 +14,7 @@
   - [Table of Contents](#table-of-contents)
   - [Abläufe \& Implementierung](#abläufe--implementierung)
     - [Lernen eines Language-Models](#lernen-eines-language-models)
-  - [Smoothing](#smoothing)
+    - [Smoothing](#smoothing)
     - [Berechnung der Perplexität eines Eingabesatzes](#berechnung-der-perplexität-eines-eingabesatzes)
     - [Datenstruktur für N-Gramme](#datenstruktur-für-n-gramme)
   - [Struktur des Repositories](#struktur-des-repositories)
@@ -24,7 +26,7 @@
 ### Lernen eines Language-Models
 
 - Das Program akzeptiert verschiedene Parameter, die bei dem Start von ebendiesem übergeben werden können. Auf diese Weise erhält das Programm alle benötigten Informationen, beispielsweise den Pfad zu dem Eingabetext, der zu verwendenden Smoothing-Variante und dem Ausgabepfad. Diese werden in einer Instanz der Klasse `LearnOptions` (siehe `Learn/LearnOptions.cs`) gespeichert.
-- Anschließend wird in der Funktion `Learn()` der Klasse `Program` (siehe `Learn/Program.cs`) eine Instanz der Klasse `LanguageModelLearner` (siehe `LanguageModel/LanguageModellearner`) erstellt. Diese Klasse besitzt eine  interne Datenstruktur sowie Funktionen, die es ermöglichen, die in einem Text vorkommenden N-Gramme zu zählen und hieraus ein Language Model zu generieren. Desweiteren wird eine Instanz der Klasse `StreamReader` erstellt, die es ermöglicht, Text aus der angegebenen Eingabedatei zu lesen. Hierbei werden über einen `try {...} catch (...) {...}`-Mechanismus auftretende Fehler behandelt und an den Nutzer kommuniziert. Die Ausgabe dieser Fehler an den Nutzer ist an die Methode `HandleExceptions()` delegiert, um die Duplizierung von weitestgehend identischem Code soweit wie möglich zu vermeiden.
+- Anschließend wird in der Funktion `Learn()` der Klasse `Program` (siehe `Learn/Program.cs`) eine Instanz der Klasse `LanguageModelLearner` (siehe `LanguageModel/LanguageModelLearner`) erstellt. Diese Klasse besitzt eine  interne Datenstruktur sowie Funktionen, die es ermöglichen, die in einem Text vorkommenden N-Gramme zu zählen und hieraus ein Language Model zu generieren. Desweiteren wird eine Instanz der Klasse `StreamReader` erstellt, die es ermöglicht, Text aus der angegebenen Eingabedatei zu lesen. Hierbei werden über einen `try {...} catch (...) {...}`-Mechanismus auftretende Fehler behandelt und an den Nutzer kommuniziert. Die Ausgabe dieser Fehler an den Nutzer ist an die Methode `HandleExceptions()` delegiert, um die Duplizierung von weitestgehend identischem Code soweit wie möglich zu vermeiden.
 - Nach diesen Vorbereitungen werden durch den Aufruf der Methode `Learn` auf die zuvor erstellte Instanz der Klasse `LanguageModelLearner` die in der Eingabedatei vorkommenden N-Gramme gezählt. Hierbei werden Unigramme, Bigramme und Trigramme berücksichtigt. Diese Daten werden in der internen Datenstruktur der Instanz zwischengespeichert.
   - Hierbei wird jede Zeile eingelesen und in ihre einzelnen Wörter aufgeteilt. Zusätzlich wird diese Liste mit den Token für Satzanfang und Satzende ergänzt.
   - Anschließend werden aus dieser Liste von Token alle vorkommenden N-Gramme gebildet und gezählt. Hierbei werden zum ersten mal vorkommende N-Gramme in der Datenstruktur ergänzt und deren Vorkommenszähler auf 1 gesetzt, bei erneut auftretenden wird der Vorkommenszähler entsprechend erhöht.
@@ -33,7 +35,7 @@
 - Abschließend wird auf dieses neue Objekt die Funktion `GetArpaRepresentation` aufgerufen, wodurch die textbasierte ARPA-Darstellung dieses Language Models in einem `Stream` zwischengespeichert wird. Diese Zwischenspeicherung bietet gegenüber dem direkten Schreiben auf den Datenträger den Vorteil, dass zum einen die Datei auf einmal und nicht in kleinen Stücken geschrieben wird, wodurch die Anzahl der erforderlichen Datenträgerzugriffe minimiert und somit auch die Ausführungszeit gesenkt werden kann. Desweiteren können die zwischengespeicherten Daten auch noch weiterverwendet werden, um beispielsweise die ARPA-Darstellung zusätzlich auf der Konsolenoberfläche auszugeben ohne dass die Daten zunächst von dem Datenträger gelesen werden müssen.
 - Als letztes wird die bei Programmstart angegebene Ausgabedatei mittels `File.OpenWrite` schreibend geöffnet und die ARPA-Darstellung des Language Models in diese geschrieben.
 
-## Smoothing
+### Smoothing
 
 - Die Implementierungen verschiedener Smoothing-Verfahren befinden sich im Verzeichnis `LanguageModel/Smoothing`. Alle Implementierung von Smoothing-Verfahren implementieren das Interface `ISmoothing`, damit zur laufzeit entsprechend der Auswahl des Anwenders festgelegt werden kann, welches Verfahren eingesetzt werden soll.
 - Die Implementierungen weisen alle eine Methode `Smooth` auf, die als Parameter zum einen das N-Gram erhält, für das die Wahrscheinlichkeit bestimmt werden soll, und zum anderen alle im Language Model vorhandenen N-Gramme, da diese bei einigen Smoothing-Verfahren benötigt werden. Die Methode `Smooth` gibt nach ihrer Ausführung die berechnete Wahrscheinlichkeit des N-Grams zurück, wobei bei der Berechnung das gewählte Smoothing-Verfahren angewandt wurde.

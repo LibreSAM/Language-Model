@@ -252,6 +252,7 @@ public class NGramLanguageModel
             } while (currentSearchedSize > 0 && p == 0); // check all ngram sizes starting from longest until we checked all or got a value
 
             // Multiply to result
+            // We could also do this in log space, but a double type has a lot of precision in C# (minimum value is around 5.0 * 10^-324)
             sentenceProbability *= p;
         }
 
