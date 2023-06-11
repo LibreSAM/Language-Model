@@ -57,7 +57,7 @@ public class NGram
             foreach (var next in context.Value)
             {
                 // ARPA format. Uses InvariantCulture to always use a point as separator of floating point number
-                string ngram = $"{context.Key} {next.Key}";
+                string ngram = string.IsNullOrWhiteSpace(context.Key) ? $"{next.Key}" : $"{context.Key} {next.Key}";
                 outputStreamWriter.WriteLine($"{next.Value.ToString(CultureInfo.InvariantCulture)} {ngram}");
             }
         }

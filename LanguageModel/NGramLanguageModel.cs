@@ -109,8 +109,8 @@ public class NGramLanguageModel
             bool success = true;
             success &= splitted[0].Equals("ngram");
             success &= splitted[2].Equals("=");
-            success &= int.TryParse(splitted[1], out int ngramSize);
-            success &= int.TryParse(splitted[3], out int ngramCount);
+            success &= int.TryParse(splitted[1], CultureInfo.InvariantCulture, out int ngramSize);
+            success &= int.TryParse(splitted[3], CultureInfo.InvariantCulture, out int ngramCount);
             if (!success)
             {
                 throw new InvalidDataException($"Invalid ARPA data: Expected \"ngram <x> = <y>\" with <x> and <y> being positive integers, but got {currentLine}");
